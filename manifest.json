@@ -1,0 +1,15 @@
+{
+  "name": "Notizie — La Repubblica",
+  "short_name": "Notizie",
+  "description": "Feed RSS de La Repubblica con riassunti generati da AI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4ef",
+  "theme_color": "#1a1410",
+  "lang": "it",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

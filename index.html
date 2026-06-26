@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Notizie — La Repubblica</title>
+
+  <!-- PWA meta tag iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Notizie" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#1a1410" />
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:       #1a1410;
+      --paper:     #f7f4ef;
+      --cream:     #ede9e2;
+      --accent:    #b5282a;
+      --muted:     #8a7f74;
+      --rule:      #d4cfc8;
+      --card-bg:   #ffffff;
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 300;
+      min-height: 100vh;
+      /* Safe area per iPhone con notch */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ── MASTHEAD ── */
+    header {
+      border-bottom: 3px double var(--ink);
+      padding: 0 1.2rem;
+    }
+    .dateline {
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.6rem 0 0.4rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .masthead-title {
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      padding: 0.6rem 0 0.5rem;
+      color: var(--ink);
+    }
+    .masthead-title span { color: var(--accent); }
+    .masthead-sub {
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 0.7rem;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1.2rem;
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .toolbar-info {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    #refreshBtn {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.55rem 1.2rem;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+    }
+    #refreshBtn:active { background: var(--accent); }
+    #refreshBtn:disabled { background: var(--muted); cursor: not-allowed; }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 5rem;
+    }
+
+    /* ── STATUS ── */
+    #statusMsg {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--rule);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FEATURED ── */
+    #featured {
+      display: none;
+      margin-bottom: 2rem;
+      border-top: 4px solid var(--accent);
+      padding-top: 1.2rem;
+    }
+    .featured-eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .featured-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.3rem, 5vw, 2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.7rem;
+    }
+    .featured-title a { color: var(--ink); text-decoration: none; }
+    .featured-meta {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.9rem;
+    }
+    .featured-summary {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #2e2820;
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      font-style: italic;
+    }
+    .featured-summary.loading { color: var(--muted); }
+
+    /* ── DIVIDER ── */
+    .section-rule {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-rule hr { flex: 1; border: none; border-top: 1px solid var(--rule); }
+    .section-rule span {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── CARDS (lista verticale su mobile) ── */
+    #grid { display: none; }
+
+    .card {
+      background: var(--card-bg);
+      border-top: 2px solid var(--rule);
+      padding: 1rem 0.9rem 1.1rem;
+      margin-bottom: 1.2rem;
+      transition: border-color 0.2s;
+    }
+    .card:active { border-color: var(--accent); }
+    .card-cat {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.4rem;
+    }
+    .card-title a { color: var(--ink); text-decoration: none; }
+    .card-date {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.63rem;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+    .card-summary { font-size: 0.88rem; line-height: 1.65; color: #3d352d; }
+    .card-summary.loading { color: var(--muted); font-style: italic; }
+    .card-summary.error { color: #b5282a; font-style: italic; font-size: 0.8rem; }
+
+    /* ── BANNER INSTALLAZIONE (solo iOS Safari) ── */
+    #installBanner {
+      display: none;
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom) + 1rem);
+      left: 1rem; right: 1rem;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+    #installBanner strong { color: var(--accent); }
+    #closeBanner {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      line-height: 1;
+      margin-left: 0.5rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      padding: 1.5rem 1rem;
+      border-top: 1px solid var(--rule);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="dateline" id="dateline">Caricamento...</p>
+  <h1 class="masthead-title">Notizie<span>.</span></h1>
+  <p class="masthead-sub">La Repubblica · Riassunti AI</p>
+</header>
+
+<div class="toolbar">
+  <span class="toolbar-info" id="countInfo">—</span>
+  <button id="refreshBtn" onclick="loadNews()">↻ Aggiorna</button>
+</div>
+
+<main>
+  <div id="statusMsg"><span class="spinner"></span> Recupero notizie…</div>
+
+  <div id="featured">
+    <p class="featured-eyebrow">Notizia principale</p>
+    <h2 class="featured-title" id="featTitle"></h2>
+    <p class="featured-meta" id="featMeta"></p>
+    <p class="featured-summary loading" id="featSummary"><span class="spinner"></span> Generazione riassunto…</p>
+  </div>
+
+  <div class="section-rule" id="sectionRule" style="display:none">
+    <hr /><span>Altre notizie</span><hr />
+  </div>
+
+  <div id="grid"></div>
+</main>
+
+<!-- Banner installazione iOS -->
+<div id="installBanner">
+  <button id="closeBanner" onclick="document.getElementById('installBanner').style.display='none'">✕</button>
+  <strong>Installa l'app</strong><br>
+  Tocca <strong>□↑</strong> (Condividi) in Safari, poi <strong>"Aggiungi a schermata Home"</strong> per usare Notizie come un'app.
+</div>
+
+<footer>
+  Fonti: La Repubblica RSS &nbsp;·&nbsp; Riassunti: Claude AI
+</footer>
+
+<script>
+  // ── PWA: registrazione Service Worker ────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // ── Banner installazione (solo iOS Safari, non già installata) ───────────
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const bannerDismissed = sessionStorage.getItem('bannerDismissed');
+  if (isIOS && !isStandalone && !bannerDismissed) {
+    setTimeout(() => {
+      document.getElementById('installBanner').style.display = 'block';
+    }, 2500);
+    document.getElementById('closeBanner').addEventListener('click', () => {
+      sessionStorage.setItem('bannerDismissed', '1');
+    });
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const RSS_URL    = 'https://www.repubblica.it/rss/homepage/rss2.0.xml';
+  const CORS_PROXY = 'https://corsproxy.io/?url=';
+
+  function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    return isNaN(d) ? str : d.toLocaleString('it-IT', {
+      weekday: 'long', day: 'numeric', month: 'long',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  // ── Riassunto AI ─────────────────────────────────────────────────────────
+  async function getSummary(title, description) {
+    const clean = stripHtml(description).slice(0, 800);
+    const prompt = `Sei un giornalista italiano. Scrivi un riassunto chiaro e coinvolgente in 2-3 frasi (max 80 parole).\n\nTitolo: ${title}\nDescrizione: ${clean || 'Non disponibile.'}\n\nRiassunto:`;
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const data = await response.json();
+    return data.content?.[0]?.text?.trim() || 'Riassunto non disponibile.';
+  }
+
+  // ── Fetch RSS ─────────────────────────────────────────────────────────────
+  async function fetchRSS() {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(RSS_URL));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'application/xml');
+    const items = [...xml.querySelectorAll('item')];
+    if (!items.length) throw new Error('Nessun articolo trovato.');
+    return items.map(item => ({
+      title:       item.querySelector('title')?.textContent?.trim() || '',
+      link:        item.querySelector('link')?.textContent?.trim() || '#',
+      description: item.querySelector('description')?.textContent || '',
+      pubDate:     item.querySelector('pubDate')?.textContent || '',
+      category:    item.querySelector('category')?.textContent?.trim() || 'Notizie',
+    }));
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function renderFeatured(a) {
+    document.getElementById('featTitle').innerHTML =
+      `<a href="${a.link}" target="_blank" rel="noopener">${a.title}</a>`;
+    document.getElementById('featMeta').textContent = formatDate(a.pubDate);
+    document.getElementById('featured').style.display = 'block';
+    document.getElementById('sectionRule').style.display = 'flex';
+  }
+
+  function renderCard(a, i) {
+    const grid = document.getElementById('grid');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <p class="card-cat">${a.category}</p>
+      <h3 class="card-title"><a href="${a.link}" target="_blank" rel="noopener">${a.title}</a></h3>
+      <p class="card-date">${formatDate(a.pubDate)}</p>
+      <p class="card-summary loading" id="summary-${i}"><span class="spinner"></span> Generazione riassunto…</p>`;
+    grid.appendChild(card);
+  }
+
+  function setSummary(id, text, isError = false) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('loading');
+    if (isError) el.classList.add('error');
+    el.innerHTML = text;
+  }
+
+  // ── Main ─────────────────────────────────────────────────────────────────
+  async function loadNews() {
+    const btn    = document.getElementById('refreshBtn');
+    const status = document.getElementById('statusMsg');
+    const grid   = document.getElementById('grid');
+    const feat   = document.getElementById('featured');
+    const rule   = document.getElementById('sectionRule');
+    const count  = document.getElementById('countInfo');
+
+    btn.disabled = true;
+    status.style.display = 'block';
+    status.innerHTML = '<span class="spinner"></span> Recupero notizie…';
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    feat.style.display = 'none';
+    rule.style.display = 'none';
+
+    document.getElementById('dateline').textContent =
+      new Date().toLocaleString('it-IT', {
+        weekday:'long', day:'numeric', month:'long',
+        year:'numeric', hour:'2-digit', minute:'2-digit'
+      });
+
+    try {
+      const articles = await fetchRSS();
+      const toShow   = articles.slice(0, 10);
+      count.textContent = `${toShow.length} notizie`;
+      status.style.display = 'none';
+
+      renderFeatured(toShow[0]);
+      grid.style.display = 'block';
+      toShow.slice(1).forEach((a, i) => renderCard(a, i + 1));
+
+      await Promise.allSettled(toShow.map(async (a, i) => {
+        try {
+          const s = await getSummary(a.title, a.description);
+          if (i === 0) {
+            const el = document.getElementById('featSummary');
+            el.classList.remove('loading');
+            el.textContent = s;
+          } else {
+            setSummary(`summary-${i}`, s);
+          }
+        } catch {
+          if (i === 0) {
+            const el = document.getElementById('featSummary');
+            el.classList.remove('loading');
+            el.classList.add('error');
+            el.textContent = 'Riassunto non disponibile.';
+          } else {
+            setSummary(`summary-${i}`, 'Riassunto non disponibile.', true);
+          }
+        }
+      }));
+
+    } catch (err) {
+      status.innerHTML = `⚠️ Errore: ${err.message}`;
+      count.textContent = '—';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  loadNews();
+</script>
+</body>
+</html>
